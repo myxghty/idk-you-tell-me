@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lumora</title>
+<style>
+  :root{
+    --bg:#0a0a0d;--surface:#131318;--surface2:#1a1a21;--line:#26262f;
+    --text:#e9e9ee;--muted:#9494a0;
+    --blue:#4c8dff;--pink:#ff4fa3;--red:#ff5c5c;--green:#3ddc84;--amber:#f5c86a;
+    box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth;}
+  .studio-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:32px;}
+  .level-row{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap;}
+  .level-chip{border:1px solid var(--line);background:var(--surface2);color:var(--muted);font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;}
+  .level-chip.active{background:rgba(76,141,255,.16);border-color:var(--blue);color:var(--blue);}
+  .studio-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px;}
+  .tool-card{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;}
+  .tool-card strong{font-size:13.5px;}
+  .tool-card p{margin:0;font-size:12px;color:var(--muted);}
+  .upload-zone{border:1.5px dashed var(--line);border-radius:12px;padding:26px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px;}
+  .upload-zone strong{display:block;color:var(--text);font-size:14.5px;margin-bottom:4px;}
+  .file-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;margin-bottom:8px;font-size:13px;}
+  .ask-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:38px;}
+  .ask-input-row{display:flex;gap:8px;margin-top:14px;}
+  .ask-input-row input{flex:1;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:inherit;outline:none;}
+  .educators{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+  .educator{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line);padding:6px 10px 6px 6px;border-radius:20px;font-size:12.5px;}
+  .edu-avatar{width:22px;height:22px;border-radius:50%;}
+
+  /* empty states (My books / Saved) */
+  .empty-state{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:46px 24px;margin-bottom:38px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;color:var(--muted);}
+  .empty-state svg{opacity:.7;}
+  .empty-state strong{color:var(--text);font-size:15px;font-weight:700;}
+  .empty-state p{margin:0;font-size:13px;max-width:320px;}
+  .empty-state .btn{margin-top:6px;}
+
+  /* create tab */
+  .create-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:2px;}
+  .create-card{background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:16px 14px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color .15s ease,transform .15s ease;}
+  .create-card:hover{border-color:var(--blue);transform:translateY(-2px);}
+  .create-card .plus{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(76,141,255,.14);color:var(--blue);flex:none;}
+  .create-card strong{font-size:13.5px;}
+  .create-card p{margin:0;font-size:12px;color:var(--muted);}
+
+  /* community composer */
+  .composer{display:flex;gap:10px;margin-bottom:18px;align-items:flex-start;}
+  .composer .edu-avatar{width:34px;height:34px;flex:none;margin-top:2px;}
+  .composer-body{flex:1;background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;}
+  .composer-body textarea{width:100%;background:none;border:none;outline:none;color:var(--text);font-size:13.5px;font-family:inherit;resize:none;min-height:40px;}
+  .composer-body textarea::placeholder{color:var(--muted);}
+  .composer-actions{display:flex;justify-content:flex-end;margin-top:6px;}
+
+  /* translate tab */
+  .translate-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .translate-col label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+  .translate-col textarea{width:100%;min-height:120px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:inherit;resize:vertical;outline:none;}
+  .translate-col textarea::placeholder{color:var(--muted);}
+  .translate-col textarea[readonly]{color:var(--muted);}
+  .lang-select{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:inherit;outline:none;margin-bottom:10px;}
+  .translate-actions{grid-column:1 / -1;display:flex;justify-content:flex-end;margin-top:2px;}
+  @media (max-width:640px){.translate-grid{grid-template-columns:1fr;}}
+  html,body{height:100%;}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:15px;line-height:1.5;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+  .mark{background:linear-gradient(120deg, rgba(245,200,106,0) 0%, rgba(245,200,106,.35) 8%, rgba(245,200,106,.35) 92%, rgba(245,200,106,0) 100%);padding:0 .15em;border-radius:2px;}
+  .mark-blue{background:linear-gradient(120deg, rgba(76,141,255,0) 0%, rgba(76,141,255,.3) 8%, rgba(76,141,255,.3) 92%, rgba(76,141,255,0) 100%);padding:0 .15em;border-radius:2px;}
+  .mark-pink{background:linear-gradient(120deg, rgba(255,79,163,0) 0%, rgba(255,79,163,.28) 8%, rgba(255,79,163,.28) 92%, rgba(255,79,163,0) 100%);padding:0 .15em;border-radius:2px;}
+  .mark-green{background:linear-gradient(120deg, rgba(61,220,132,0) 0%, rgba(61,220,132,.28) 8%, rgba(61,220,132,.28) 92%, rgba(61,220,132,0) 100%);padding:0 .15em;border-radius:2px;}
+
+  .bg-decor{position:fixed;inset:0;z-index:0;background:var(--bg);overflow:hidden;pointer-events:none;}
+  .glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.20;}
+  .glow-blue{width:420px;height:420px;background:var(--blue);top:-120px;left:8%;}
+  .glow-pink{width:380px;height:380px;background:var(--pink);top:30%;right:-100px;}
+  .glow-green{width:340px;height:340px;background:var(--green);bottom:-100px;left:20%;}
+  .glow-red{width:280px;height:280px;background:var(--red);bottom:10%;right:18%;opacity:.14;}
+  .doodles{position:absolute;inset:0;width:100%;height:100%;}
+  .app{position:relative;z-index:1;}
+
+  .app{display:flex;min-height:100%;}
+  .rail{
+    width:60px;flex:none;background:var(--surface);border-right:1px solid var(--line);
+    padding:16px 10px;display:flex;flex-direction:column;gap:22px;
+    position:sticky;top:0;height:100vh;transition:width .18s ease;overflow:hidden;
+  }
+  .rail.open{width:212px;}
+  .brand{display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 2px 8px;text-align:center;}
+  .logo-block{width:28px;height:28px;border-radius:8px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--blue),var(--pink));color:#0a0a0d;font-weight:800;font-size:15px;
+    box-shadow:0 0 16px rgba(255,79,163,.4);}
+  .brand .wordmark{font-weight:800;font-size:19px;letter-spacing:-.02em;white-space:nowrap;opacity:0;max-height:0;transition:opacity .15s ease;
+    background:linear-gradient(100deg,var(--blue) 10%,var(--pink) 90%);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 10px rgba(255,79,163,.25));}
+  .brand .tagline{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.02em;opacity:0;max-height:0;transition:opacity .15s ease;white-space:nowrap;}
+  .rail.open .brand .wordmark, .rail.open .brand .tagline{opacity:1;max-height:none;}
+
+  nav{display:flex;flex-direction:column;gap:2px;}
+  nav a{display:flex;align-items:center;gap:12px;padding:9px 8px;border-radius:8px;color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap;transition:background .15s ease,color .15s ease;}
+  nav a svg{flex:none;}
+  nav a span{opacity:0;transition:opacity .12s ease;}
+  .rail.open nav a span{opacity:1;}
+  nav a:hover{background:var(--surface2);color:var(--text);}
+  nav a.active{background:rgba(76,141,255,.14);color:var(--blue);}
+  .nav-divider{height:1px;background:var(--line);margin:6px 2px;}
+  .rail:not(.open) nav a{justify-content:center;gap:0;padding-left:0;padding-right:0;}
+  .rail:not(.open) nav a span{width:0;overflow:hidden;}
+
+  .rail-bottom{margin-top:auto;}
+  .profile{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);position:relative;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--line);flex:none;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .prof-txt{min-width:0;opacity:0;transition:opacity .12s ease;white-space:nowrap;}
+  .rail.open .prof-txt{opacity:1;}
+  .prof-txt strong{display:block;font-size:13px;}
+  .prof-txt span{display:block;font-size:12px;color:var(--muted);}
+  .rail:not(.open) .profile{justify-content:center;gap:0;padding-left:0;padding-right:0;}
+  .rail:not(.open) .prof-txt{width:0;overflow:hidden;}
+  .wave-figure{position:absolute;right:6px;top:-24px;width:32px;height:32px;}
+  .wave-hand{transform-origin:70% 75%;animation:wave 2.4s ease-in-out infinite;animation-delay:1s;}
+  @keyframes wave{0%,60%,100%{transform:rotate(0deg);}10%{transform:rotate(-14deg);}20%{transform:rotate(18deg);}30%{transform:rotate(-12deg);}40%{transform:rotate(16deg);}50%{transform:rotate(0deg);}}
+
+  main{flex:1;min-width:0;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(10,10,13,.9);backdrop-filter:blur(6px);z-index:5;}
+  .topbar-actions{display:flex;align-items:center;gap:14px;margin-left:auto;}
+  .search{flex:1;max-width:480px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 12px;color:var(--muted);}
+  .search input{background:none;border:none;outline:none;color:var(--text);font-size:14px;width:100%;font-family:inherit;}
+  .search input::placeholder{color:var(--muted);}
+  .btn{border:none;border-radius:8px;padding:9px 15px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .btn-primary{background:var(--blue);color:#08101f;}
+  .btn-primary:hover{background:#6ba0ff;}
+  .btn-gradient{background:linear-gradient(100deg,var(--blue),var(--pink));color:#0a0a0d;}
+
+  .account-menu{position:relative;}
+  .account-trigger{background:none;border:none;padding:0;cursor:pointer;border-radius:50%;}
+  .account-avatar{display:flex;align-items:center;justify-content:center;overflow:hidden;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.05);border:1.5px solid var(--line);}
+  .account-trigger:hover .account-avatar{border-color:var(--blue);}
+  .account-dropdown{position:absolute;right:0;top:calc(100% + 10px);width:200px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:8px;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);display:none;flex-direction:column;gap:2px;z-index:20;}
+  .account-menu.open .account-dropdown{display:flex;}
+  .account-who{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;}
+  .account-who strong{display:block;font-size:13px;}
+  .account-who span{display:block;font-size:11.5px;color:var(--muted);}
+  .account-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:13px;color:var(--text);}
+  .account-item:hover{background:var(--surface2);}
+  .account-logout{color:var(--red);}
+
+  .content{padding:28px;width:100%;}
+
+  /* continue-where-left-off banner */
+  .continue{display:flex;align-items:flex-start;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:32px;}
+  .continue svg{flex:none;}
+  .continue-txt{flex:1;min-width:0;padding-top:4px;}
+  .continue-txt span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px;}
+  .continue-txt strong{font-size:16.5px;font-weight:700;}
+  .go-col{display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;}
+  .go-arrow path{animation:nudge 1.4s ease-in-out infinite;}
+  @keyframes nudge{0%,100%{transform:translateX(0);}50%{transform:translateX(6px);}}
+
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+  .section-head h2{font-size:16px;margin:0;font-weight:700;}
+  .section-head a{font-size:13px;color:var(--blue);}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:38px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:15px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s ease,transform .15s ease;}
+  .card:hover{border-color:#38384a;transform:translateY(-2px);}
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:20px;width:fit-content;}
+  .tag-video{background:rgba(76,141,255,.15);color:var(--blue);}
+  .tag-text{background:rgba(255,79,163,.15);color:var(--pink);}
+  .tag-quiz{background:rgba(61,220,132,.15);color:var(--green);}
+  .tag-dataset{background:rgba(255,92,92,.15);color:var(--red);}
+  .card h3{margin:0;font-size:14.5px;font-weight:600;line-height:1.35;}
+  .card p{margin:0;color:var(--muted);font-size:13px;}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;}
+  .badge{font-size:10.5px;font-weight:600;color:var(--muted);background:var(--surface2);border:1px solid var(--line);padding:2px 7px;border-radius:6px;}
+  .card-meta{display:flex;justify-content:space-between;align-items:center;margin-top:auto;font-size:12px;color:var(--muted);}
+  .status{display:flex;align-items:center;gap:5px;font-weight:600;}
+  .dot{width:6px;height:6px;border-radius:50%;}
+  .dot-green{background:var(--green);}
+  .dot-red{background:var(--red);}
+  .card-actions{display:flex;gap:6px;border-top:1px solid var(--line);padding-top:10px;}
+  .icon-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--surface2);border:1px solid var(--line);border-radius:7px;padding:6px 0;color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;}
+  .icon-btn:hover{color:var(--text);border-color:#3a3a48;}
+  .icon-btn.saved{color:var(--green);border-color:var(--green);}
+
+  .network-wrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 20px 6px;margin-bottom:16px;overflow:hidden;}
+  .node{animation:pulse 2.6s ease-in-out infinite;}
+  .node.n2{animation-delay:.4s;}
+  .node.n3{animation-delay:.8s;}
+  .node.n4{animation-delay:1.2s;}
+  .node.n5{animation-delay:1.6s;}
+  @keyframes pulse{0%,100%{opacity:.55;r:5;}50%{opacity:1;r:7;}}
+  .edge{stroke-dasharray:4 5;animation:flow 3s linear infinite;}
+  @keyframes flow{to{stroke-dashoffset:-90;}}
+
+  .feed{display:flex;flex-direction:column;gap:10px;}
+  .feed-item{display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px 15px;align-items:flex-start;}
+  .feed-avatar{width:30px;height:30px;border-radius:50%;flex:none;background:linear-gradient(135deg,var(--green),var(--blue));}
+  .feed-item p{margin:0;font-size:13.5px;}
+  .feed-item time{font-size:12px;color:var(--muted);}
+
+  .ask-reply{display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;}
+  .ask-reply .edu-avatar{width:24px;height:24px;flex:none;margin-top:1px;}
+  .ask-reply strong{display:block;margin-bottom:2px;}
+  .ask-reply.you{background:rgba(76,141,255,.08);border-color:rgba(76,141,255,.3);}
+
+  @media (max-width:820px){
+    .content{padding:20px;}
+    .continue{flex-wrap:wrap;}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s !important;animation-iteration-count:1 !important;}}
+</style>
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true">
+  <div class="glow glow-blue"></div>
+  <div class="glow glow-pink"></div>
+  <div class="glow glow-green"></div>
+  <div class="glow glow-red"></div>
+  <svg class="doodles" viewBox="0 0 1400 1000" preserveAspectRatio="xMidYMid slice" fill="none">
+    <g stroke="var(--blue)" stroke-width="1.4" opacity=".2">
+      <circle cx="120" cy="130" r="6"/><circle cx="170" cy="100" r="6"/><circle cx="170" cy="160" r="6"/><circle cx="220" cy="130" r="6"/>
+      <line x1="120" y1="130" x2="170" y2="100"/><line x1="120" y1="130" x2="170" y2="160"/><line x1="170" y1="100" x2="220" y2="130"/><line x1="170" y1="160" x2="220" y2="130"/>
+    </g>
+    <g stroke="var(--pink)" stroke-width="1.4" opacity=".19">
+      <path d="M1220 60c30 20 30 60 0 80s-30 60 0 80"/>
+      <path d="M1260 60c-30 20-30 60 0 80s30 60 0 80"/>
+      <line x1="1220" y1="70" x2="1260" y2="70"/><line x1="1216" y1="100" x2="1264" y2="100"/><line x1="1220" y1="130" x2="1260" y2="130"/><line x1="1216" y1="160" x2="1264" y2="160"/><line x1="1220" y1="190" x2="1260" y2="190"/>
+    </g>
+    <g stroke="var(--green)" stroke-width="1.3" opacity=".19">
+      <path d="M60 620h200M60 620v-140"/>
+      <path d="M60 600c30-40 50 40 80-10s50 30 80-30 30 40 40-10" stroke-width="1.6"/>
+    </g>
+    <text x="1080" y="330" fill="var(--pink)" opacity=".2" font-size="30" font-family="serif" font-style="italic">E = mc&#178;</text>
+    <text x="80" y="820" fill="var(--blue)" opacity=".19" font-size="26" font-family="serif" font-style="italic">&#8747; f(x)dx</text>
+    <g stroke="var(--muted)" stroke-width="1.3" opacity=".19">
+      <rect x="1180" y="620" width="70" height="90" rx="3"/><line x1="1190" y1="638" x2="1240" y2="638"/><line x1="1190" y1="652" x2="1240" y2="652"/><line x1="1190" y1="666" x2="1220" y2="666"/>
+    </g>
+    <g stroke="var(--red)" stroke-width="1.3" opacity=".18">
+      <circle cx="330" cy="880" r="34"/><circle cx="330" cy="880" r="16" stroke-dasharray="3 4"/>
+      <ellipse cx="330" cy="880" rx="46" ry="18" transform="rotate(30 330 880)"/><ellipse cx="330" cy="880" rx="46" ry="18" transform="rotate(-30 330 880)"/>
+    </g>
+    <g stroke="var(--blue)" stroke-width="1.3" opacity=".18">
+      <rect x="640" y="70" width="34" height="46" rx="2"/><line x1="647" y1="82" x2="667" y2="82"/><line x1="647" y1="92" x2="667" y2="92"/>
+      <rect x="680" y="78" width="30" height="42" rx="2" transform="rotate(8 695 99)"/>
+    </g>
+  </svg>
+</div>
+<div class="app">
+
+  <aside class="rail" id="rail">
+    <div class="brand">
+      <div class="logo-block" id="railToggle">L</div>
+      <span class="wordmark">Lumora</span>
+      <div class="tagline">LEARN · SHARE · REUSE</div>
+    </div>
+
+    <nav>
+      <a class="active" href="#" title="Discover"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg><span>Discover</span></a>
+      <a href="#mybooks-section" title="My books"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 013 3v13H7a3 3 0 01-3-3V4z"/><path d="M8 8h6M8 12h6"/></svg><span>My books</span></a>
+      <a href="#create-section" title="Create"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Create</span></a>
+      <a href="#studio-section" title="AI Studio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 3.6L17 8l-3.4 1.4L12 13l-1.6-3.6L7 8l3.4-1.4z"/><path d="M18 15l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z"/></svg><span>AI Studio</span></a>
+      <a href="#upload-section" title="Upload"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg><span>Upload &amp; download</span></a>
+      <a href="#ask-section" title="Ask educators"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H8l-5 4V6a2 2 0 012-2h14a2 2 0 012 2z"/><path d="M12 9.5c0-1 1-1.2 1-2.2a1 1 0 00-2 0" stroke-linecap="round"/><circle cx="11" cy="13" r=".6" fill="currentColor"/></svg><span>Ask educators</span></a>
+      <a href="#community-section" title="Community"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg><span>Community</span></a>
+      <a href="#translate-section" title="Translate"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h9M8 4v2c0 4-2 7-5 8.5M6 10c1.2 2 3 3.5 5.5 4.5"/><path d="M13 20l4-9 4 9M14.5 17h5"/></svg><span>Translate</span></a>
+      <a href="#saved-section" title="Saved"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v17l-6-4-6 4z"/></svg><span>Saved</span></a>
+      <div class="nav-divider"></div>
+      <a href="#" title="Simple mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 13a4 4 0 008 0"/><path d="M9 9h.01M15 9h.01"/></svg><span>Simple mode</span></a>
+    </nav>
+
+    <div class="rail-bottom">
+      <div class="profile">
+        <svg class="wave-figure" viewBox="0 0 30 30" fill="none">
+          <circle cx="14" cy="9" r="3.4" fill="#e3b58a"/>
+          <path d="M9 22c0-4.4 2.5-7 5-7s5 2.6 5 7" fill="#5b6b8c"/>
+          <g class="wave-hand"><path d="M18 16c1.6-.4 3.2.2 3.6 1.6.3 1-.2 1.9-1.1 2.2" stroke="#e3b58a" stroke-width="2.4" stroke-linecap="round" fill="none"/></g>
+        </svg>
+        <div class="avatar">
+          <svg viewBox="0 0 32 32" width="32" height="32" fill="none"><circle cx="16" cy="12" r="5.4" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/><path d="M5 29.5c0-6.3 4.95-10.5 11-10.5s11 4.2 11 10.5" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/></svg>
+        </div>
+        <div class="prof-txt"><strong>Priya N.</strong><span>Biology · 12 shared</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="topSearchInput" placeholder="Search resources, topics, or ask a question"></div>
+      <div class="topbar-actions">
+      <button class="btn btn-primary" id="addMaterialBtn">Add material</button>
+      <button class="btn btn-gradient" id="newFromTextbookBtn">New from textbook</button>
+      <div class="account-menu" id="accountMenu">
+        <button class="account-trigger" id="accountTrigger" aria-haspopup="true" aria-expanded="false">
+          <span class="account-avatar">
+            <svg viewBox="0 0 34 34" width="34" height="34" fill="none"><circle cx="17" cy="12.75" r="5.7" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/><path d="M5.3 31.3c0-6.7 5.26-11.15 11.69-11.15s11.69 4.45 11.69 11.15" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/></svg>
+          </span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-who"><strong>Priya N.</strong><span>priya.n@lumora.edu</span></div>
+          <a href="#" class="account-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.2a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.2a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1h.2a2 2 0 110 4h-.2a1.6 1.6 0 00-1.5 1z"/></svg>Settings</a>
+          <a href="#" class="account-item account-logout" id="authBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Log out</a>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="continue">
+        <svg width="46" height="46" viewBox="0 0 46 46" fill="none"><rect x="8" y="6" width="26" height="34" rx="2" fill="var(--surface2)" stroke="var(--line)"/><path d="M14 14h14M14 20h14M14 26h9" stroke="var(--muted)" stroke-width="1.6" stroke-linecap="round"/><rect x="4" y="10" width="4" height="26" rx="1.5" fill="var(--blue)"/></svg>
+        <div class="continue-txt"><span>Continue where you left off</span><strong>Photosynthesis — Interactive Walkthrough</strong></div>
+        <div class="go-col">
+          <svg class="go-arrow" width="26" height="18" viewBox="0 0 26 18" fill="none"><path d="M1 9h20m0 0l-6-6m6 6l-6 6" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="book-figures" width="86" height="52" viewBox="0 0 120 76" fill="none">
+            <rect x="4" y="46" width="112" height="8" rx="2" fill="#232330"/>
+            <g transform="translate(10,10)"><rect width="26" height="40" rx="2" fill="var(--blue)"/><rect x="4" width="4" height="40" fill="#0a0a0d" opacity=".25"/><rect x="4" y="6" width="16" height="2.4" rx="1" fill="#0a0a0d" opacity=".5"/></g>
+            <g transform="translate(40,4) rotate(-6 20 22)"><rect width="30" height="44" rx="2" fill="var(--pink)"/><rect x="4" width="4" height="44" fill="#0a0a0d" opacity=".2"/><rect x="5" y="7" width="18" height="2.4" rx="1" fill="#0a0a0d" opacity=".45"/></g>
+            <g transform="translate(74,14) rotate(5 18 20)"><rect width="28" height="38" rx="2" fill="var(--green)"/><rect x="4" width="4" height="38" fill="#0a0a0d" opacity=".2"/><rect x="5" y="6" width="16" height="2.4" rx="1" fill="#0a0a0d" opacity=".45"/></g>
+            <rect x="18" y="2" width="20" height="6" rx="2" fill="var(--amber)" opacity=".9" transform="rotate(-10 28 5)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="section-head"><h2>Recommended for you</h2><a href="#">See all</a></div>
+      <div class="grid" id="recommendedGrid">
+        <div class="card">
+          <span class="tag tag-video">Video lesson</span>
+          <h3>Photosynthesis, rebuilt as a 6-minute interactive walkthrough</h3>
+          <p>Converted from Ch. 4 of an open biology textbook</p>
+          <div class="badges"><span class="badge">Summary</span><span class="badge">Quiz</span><span class="badge">Flashcards</span></div>
+          <div class="card-meta"><span>Grade 9–10</span><span class="status"><span class="dot dot-green"></span>Saved</span></div>
+          <div class="card-actions">
+            <button class="icon-btn" data-action="read">Read</button>
+            <button class="icon-btn" data-action="download">Download</button>
+            <button class="icon-btn" data-action="save">Save</button>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag tag-text">Reading</span>
+          <h3>The Krebs cycle, explained in plain language</h3>
+          <p>Available in Tamil, Hindi, and Spanish — pick a language when you open it</p>
+          <div class="badges"><span class="badge">Glossary</span><span class="badge">Multilingual</span></div>
+          <div class="card-meta"><span>Grade 11</span><span class="status"><span class="dot dot-red"></span>Flagged: outdated figure</span></div>
+          <div class="card-actions">
+            <button class="icon-btn" data-action="read">Read</button>
+            <button class="icon-btn" data-action="download">Download</button>
+            <button class="icon-btn" data-action="save">Save</button>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag tag-quiz">Practice set</span>
+          <h3>Cell division — 12 questions with worked answers</h3>
+          <p>Generated from a lecture transcript</p>
+          <div class="badges"><span class="badge">Quiz</span><span class="badge">Flashcards</span></div>
+          <div class="card-meta"><span>Grade 10</span><span class="status"><span class="dot dot-green"></span>Saved</span></div>
+          <div class="card-actions">
+            <button class="icon-btn" data-action="read">Read</button>
+            <button class="icon-btn" data-action="download">Download</button>
+            <button class="icon-btn" data-action="save">Save</button>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag tag-dataset">Dataset</span>
+          <h3>Local rainfall records, 2005–2024, for a stats module</h3>
+          <p>Shared by a faculty member in Hydrology</p>
+          <div class="badges"><span class="badge">Summary</span></div>
+          <div class="card-meta"><span>Undergrad</span><span class="status"><span class="dot dot-green"></span>Saved</span></div>
+          <div class="card-actions">
+            <button class="icon-btn" data-action="read">Read</button>
+            <button class="icon-btn" data-action="download">Download</button>
+            <button class="icon-btn" data-action="save">Save</button>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag tag-video">Video lesson</span>
+          <h3>Newton's laws, shown through three everyday experiments</h3>
+          <p>Converted from a Grade 9 physics workbook</p>
+          <div class="badges"><span class="badge">Summary</span><span class="badge">Quiz</span></div>
+          <div class="card-meta"><span>Grade 9</span><span class="status"><span class="dot dot-green"></span>Saved</span></div>
+          <div class="card-actions">
+            <button class="icon-btn" data-action="read">Read</button>
+            <button class="icon-btn" data-action="download">Download</button>
+            <button class="icon-btn" data-action="save">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head" id="searchResultsHead" style="display:none;"><h2 id="searchResultsTitle">Search results</h2><span id="searchResultsStatus" style="font-size:12.5px;color:var(--muted);"></span></div>
+      <div class="grid" id="searchResultsGrid" style="display:none;"></div>
+
+      <div class="section-head" id="mybooks-section"><h2>My books</h2><a href="#" id="refreshLibraryBtn">Refresh</a></div>
+      <div id="myBooksContainer">
+        <div class="empty-state">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h11a3 3 0 013 3v13H7a3 3 0 01-3-3V4z"/><path d="M8 8h6M8 12h6" stroke-dasharray="1 3"/></svg>
+          <strong>No books yet</strong>
+          <p>Anything you convert, save, or build in AI Studio will show up here so you can get back to it fast.</p>
+          <button class="btn btn-gradient" id="emptyStateAddBtn">Add material</button>
+        </div>
+      </div>
+
+      <div class="section-head" id="create-section"><h2>Create</h2></div>
+      <div class="studio-panel">
+        <p style="margin:0 0 4px;color:var(--muted);font-size:13.5px;">Start something new — Lumora helps you build it out from there.</p>
+        <div class="create-grid">
+          <div class="create-card" data-action="blank-lesson">
+            <span class="plus"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <strong>Blank lesson</strong>
+            <p>Start from a clean page</p>
+          </div>
+          <div class="create-card" data-action="from-textbook">
+            <span class="plus"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <strong>From a textbook</strong>
+            <p>Upload a chapter to rebuild</p>
+          </div>
+          <div class="create-card" data-action="quiz-flashcards">
+            <span class="plus"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <strong>Quiz or flashcards</strong>
+            <p>Generate practice from any source</p>
+          </div>
+          <div class="create-card" data-action="from-dataset">
+            <span class="plus"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <strong>From a dataset</strong>
+            <p>Turn a CSV into a module</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head" id="studio-section"><h2>AI Studio</h2><a href="#">History</a></div>
+      <div class="studio-panel">
+        <p style="margin:0;color:var(--muted);font-size:13.5px;">Drop in a chapter or a deck, pick a study level, and Lumora rewrites it — plus a <span class="mark-blue">summary</span>, glossary, flashcards and a quiz to go with it, in <span class="mark-green">any language</span> you name.</p>
+
+        <textarea id="studioTextInput" placeholder="Paste text here (or upload a file below, then come back and click Convert)" style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:inherit;margin:14px 0 0;resize:vertical;"></textarea>
+
+        <div class="level-row" id="studioLevelRow">
+          <span class="level-chip" data-level="beginner">Beginner</span>
+          <span class="level-chip active" data-level="intermediate">Intermediate</span>
+          <span class="level-chip" data-level="advanced">Advanced</span>
+          <span class="level-chip" data-level="undergrad">Undergrad</span>
+          <span class="level-chip" data-level="simple">Simple / accessible</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn btn-gradient" id="convertBtn">Convert for this level</button>
+          <span id="studioStatus" style="font-size:12.5px;color:var(--muted);"></span>
+        </div>
+        <div class="studio-tools">
+          <div class="tool-card"><strong>Quiz generator</strong><p>Builds graded questions from the source text</p></div>
+          <div class="tool-card"><strong>Flashcards</strong><p>Key terms turned into a study deck</p></div>
+          <div class="tool-card"><strong>Glossary</strong><p>Plain-language definitions, pulled inline</p></div>
+        </div>
+
+        <div id="resultsPanel" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px;display:none;">
+          <div class="level-row" id="resultTabs">
+            <span class="level-chip active" data-tab="summary">Summary</span>
+            <span class="level-chip" data-tab="glossary">Glossary</span>
+            <span class="level-chip" data-tab="quiz">Quiz</span>
+            <span class="level-chip" data-tab="flashcards">Flashcards</span>
+            <span class="level-chip" data-tab="outdated">Outdated flags</span>
+          </div>
+          <div id="resultContent" style="font-size:13.5px;color:var(--text);line-height:1.7;"></div>
+          <div style="margin-top:14px;display:flex;gap:8px;">
+            <input id="saveTitleInput" placeholder="Title this module to save it" style="flex:1;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;">
+            <button class="btn btn-primary" id="saveModuleBtn">Save to library</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head" id="upload-section"><h2>Upload &amp; download</h2><a href="#mybooks-section">My library</a></div>
+      <div class="studio-panel">
+        <input type="file" id="fileInput" accept=".pdf,.docx,.pptx" style="display:none;">
+        <div class="upload-zone" id="uploadZone" style="cursor:pointer;"><strong>Drag a textbook, slide deck, or notes here</strong>PDF, DOCX, or PPTX — Lumora checks it for outdated content automatically</div>
+        <div id="fileRowsDynamic"></div>
+      </div>
+
+      <div class="section-head" id="ask-section"><h2>Ask an educator</h2><a href="#">All questions</a></div>
+      <div class="ask-panel">
+        <div class="educators" id="educatorPills">
+          <span class="educator" data-name="Dr. Meera S." style="cursor:pointer;"><span class="edu-avatar" style="background:linear-gradient(135deg,var(--blue),var(--green));"></span>Dr. Meera S. · Chemistry</span>
+          <span class="educator" data-name="Arjun T." style="cursor:pointer;"><span class="edu-avatar" style="background:linear-gradient(135deg,var(--pink),var(--red));"></span>Arjun T. · Biology TA</span>
+          <span class="educator" data-name="Faridah O." style="cursor:pointer;"><span class="edu-avatar" style="background:linear-gradient(135deg,var(--green),var(--blue));"></span>Faridah O. · Statistics</span>
+        </div>
+        <div class="ask-input-row">
+          <input id="askEducatorInput" placeholder="Type your doubt — it goes straight to an educator in this subject">
+          <button class="btn btn-primary" id="askSendBtn">Send</button>
+        </div>
+        <div id="askReplies" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
+        <p style="margin:10px 0 0;font-size:12px;color:var(--muted);">Answers usually land within <span class="mark-pink">a few hours</span>, not days.</p>
+      </div>
+
+      <div class="section-head" id="community-section"><h2>Community</h2><a href="#">Open feed</a></div>
+      <div class="composer">
+        <span class="edu-avatar" style="background:linear-gradient(135deg,var(--blue),var(--pink));"></span>
+        <div class="composer-body">
+          <textarea id="communityPostInput" rows="1" placeholder="Share something with the community — a fix, a resource, a question…"></textarea>
+          <div class="composer-actions"><button class="btn btn-primary" id="communityPostBtn">Post</button></div>
+        </div>
+      </div>
+      <div class="network-wrap">
+        <svg width="100%" height="110" viewBox="0 0 600 110">
+          <line class="edge" x1="80" y1="55" x2="220" y2="30" stroke="#3a3a46" stroke-width="1.4"/>
+          <line class="edge" x1="80" y1="55" x2="230" y2="85" stroke="#3a3a46" stroke-width="1.4"/>
+          <line class="edge" x1="220" y1="30" x2="380" y2="45" stroke="#3a3a46" stroke-width="1.4"/>
+          <line class="edge" x1="230" y1="85" x2="380" y2="45" stroke="#3a3a46" stroke-width="1.4"/>
+          <line class="edge" x1="380" y1="45" x2="510" y2="25" stroke="#3a3a46" stroke-width="1.4"/>
+          <line class="edge" x1="380" y1="45" x2="510" y2="80" stroke="#3a3a46" stroke-width="1.4"/>
+          <circle class="node n1" cx="80" cy="55" r="6" fill="var(--blue)"/>
+          <circle class="node n2" cx="220" cy="30" r="6" fill="var(--pink)"/>
+          <circle class="node n3" cx="230" cy="85" r="6" fill="var(--green)"/>
+          <circle class="node n4" cx="380" cy="45" r="7" fill="var(--blue)"/>
+          <circle class="node n5" cx="510" cy="25" r="6" fill="var(--green)"/>
+          <circle class="node n2" cx="510" cy="80" r="6" fill="var(--pink)"/>
+        </svg>
+      </div>
+      <div class="feed" id="communityFeed">
+        <div class="feed-item"><div class="feed-avatar"></div><div><p><strong>Arjun T.</strong> reused your <span class="mark">Krebs cycle</span> reading and added Marathi subtitles</p><time>2 hours ago</time></div></div>
+        <div class="feed-item"><div class="feed-avatar" style="background:linear-gradient(135deg,var(--red),var(--pink));"></div><div><p><strong>Dr. Meera S.</strong> flagged a Chemistry module for an outdated periodic table graphic</p><time>Yesterday</time></div></div>
+        <div class="feed-item"><div class="feed-avatar" style="background:linear-gradient(135deg,var(--blue),var(--green));"></div><div><p><strong>Faridah O.</strong> shared a dataset your Statistics quiz now pulls from</p><time>2 days ago</time></div></div>
+      </div>
+
+      <div class="section-head" id="translate-section" style="margin-top:38px;"><h2>Translate</h2></div>
+      <div class="studio-panel">
+        <p style="margin:0 0 16px;color:var(--muted);font-size:13.5px;">Paste any text and pick a language — Lumora keeps the meaning, not just the words.</p>
+        <div class="translate-grid">
+          <div class="translate-col">
+            <label for="translateSource">Text to translate</label>
+            <textarea id="translateSource" placeholder="Paste or type text here…"></textarea>
+          </div>
+          <div class="translate-col">
+            <label for="translateTarget">Translate to</label>
+            <select class="lang-select" id="translateTarget">
+              <option>Tamil</option>
+              <option>Hindi</option>
+              <option>Spanish</option>
+              <option>French</option>
+              <option>Marathi</option>
+              <option>Mandarin</option>
+              <option>Arabic</option>
+              <option>Swahili</option>
+            </select>
+            <label for="translateOutput">Translation</label>
+            <textarea id="translateOutput" readonly placeholder="Your translation will appear here"></textarea>
+          </div>
+          <div class="translate-actions">
+            <span id="translateStatus" style="font-size:12.5px;color:var(--muted);margin-right:auto;align-self:center;"></span>
+            <button class="btn btn-gradient" id="translateBtn">Translate</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head" id="saved-section"><h2>Saved</h2><a href="#" id="refreshSavedBtn">Refresh</a></div>
+      <div id="savedContainer"></div>
+
+    </div>
+  </main>
+</div>
+<script>
+  var BACKEND_URL = "http://localhost:3001";
+
+  document.getElementById('railToggle').addEventListener('click', function(){
+    document.getElementById('rail').classList.toggle('open');
+  });
+  var acctMenu = document.getElementById('accountMenu');
+  document.getElementById('accountTrigger').addEventListener('click', function(e){
+    e.stopPropagation();
+    acctMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if(!acctMenu.contains(e.target)) acctMenu.classList.remove('open');
+  });
+  document.getElementById('authBtn').addEventListener('click', function(e){
+    e.preventDefault();
+    var loggedOut = this.textContent.trim() === 'Log out';
+    this.innerHTML = this.innerHTML.replace(loggedOut ? 'Log out' : 'Log in', loggedOut ? 'Log in' : 'Log out');
+    acctMenu.classList.remove('open');
+  });
+
+  // Level chip selection (AI Studio) is scoped separately from the result
+  // tabs below — both use the .level-chip style but must not affect each other.
+  var selectedLevel = 'intermediate';
+  document.querySelectorAll('#studioLevelRow .level-chip[data-level]').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('#studioLevelRow .level-chip[data-level]').forEach(function(c){c.classList.remove('active');});
+      chip.classList.add('active');
+      selectedLevel = chip.getAttribute('data-level');
+    });
+  });
+
+  function escapeHtml(str){
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function(ch){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+    });
+  }
+
+  // ---- AI Studio: generate from pasted text or last uploaded file ----
+  var lastExtractedText = "";
+  var lastGeneratedData = null;
+
+  function setStatus(msg){
+    document.getElementById('studioStatus').textContent = msg;
+  }
+
+  document.getElementById('convertBtn').addEventListener('click', function(){
+    var text = document.getElementById('studioTextInput').value.trim() || lastExtractedText;
+    if (!text || text.length < 20){
+      setStatus('Paste at least a short paragraph, or upload a file first.');
+      return;
+    }
+    setStatus('Generating...');
+    fetch(BACKEND_URL + '/api/generate/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text: text, options: {level: selectedLevel}})
+    })
+    .then(function(res){ return res.json().then(function(body){ return {ok: res.ok, body: body}; }); })
+    .then(function(result){
+      if (!result.ok){
+        setStatus('Error: ' + (result.body.error || 'unknown error'));
+        return;
+      }
+      lastGeneratedData = result.body;
+      setStatus('Done.');
+      renderResults(result.body);
+    })
+    .catch(function(err){
+      setStatus('Could not reach backend: ' + err.message);
+    });
+  });
+
+  function renderResults(data){
+    document.getElementById('resultsPanel').style.display = 'block';
+    showTab('summary');
+  }
+
+  function showTab(tab){
+    if (!lastGeneratedData) return;
+    var el = document.getElementById('resultContent');
+    var d = lastGeneratedData;
+    if (tab === 'summary'){
+      el.innerHTML = '<p>' + escapeHtml(d.summary || '') + '</p>';
+    } else if (tab === 'glossary'){
+      el.innerHTML = (d.glossary || []).map(function(g){
+        return '<p><strong>' + escapeHtml(g.term) + ':</strong> ' + escapeHtml(g.definition) + '</p>';
+      }).join('') || '<p style="color:var(--muted)">No glossary terms.</p>';
+    } else if (tab === 'quiz'){
+      el.innerHTML = (d.quiz || []).map(function(q, i){
+        var opts = (q.options || []).map(function(o){
+          return '<div style="padding-left:12px;' + (o === q.answer ? 'color:var(--green);font-weight:600;' : '') + '">' + escapeHtml(o) + '</div>';
+        }).join('');
+        return '<p><strong>' + (i+1) + '. ' + escapeHtml(q.question) + '</strong></p>' + opts;
+      }).join('<div style="height:10px;"></div>') || '<p style="color:var(--muted)">No quiz questions.</p>';
+    } else if (tab === 'flashcards'){
+      el.innerHTML = (d.flashcards || []).map(function(c){
+        return '<p><strong>Q:</strong> ' + escapeHtml(c.front) + '<br><strong>A:</strong> ' + escapeHtml(c.back) + '</p>';
+      }).join('') || '<p style="color:var(--muted)">No flashcards.</p>';
+    } else if (tab === 'outdated'){
+      var flags = d.outdated_flags || [];
+      if (flags.length === 0){
+        el.innerHTML = '<p style="color:var(--green);">No outdated content detected.</p>';
+      } else {
+        el.innerHTML = flags.map(function(f){
+          return '<p style="border-left:3px solid var(--red);padding-left:10px;margin-bottom:10px;">' +
+                 '<strong>Flagged:</strong> "' + escapeHtml(f.excerpt) + '"<br>' +
+                 '<span style="color:var(--muted);">' + escapeHtml(f.reason) + '</span><br>' +
+                 '<span style="color:var(--amber);">Suggested: ' + escapeHtml(f.suggested_update) + '</span></p>';
+        }).join('');
+      }
+    }
+  }
+
+  document.querySelectorAll('#resultTabs .level-chip[data-tab]').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('#resultTabs .level-chip[data-tab]').forEach(function(c){c.classList.remove('active');});
+      chip.classList.add('active');
+      showTab(chip.getAttribute('data-tab'));
+    });
+  });
+
+  // ---- Save to library ----
+  document.getElementById('saveModuleBtn').addEventListener('click', function(){
+    if (!lastGeneratedData){
+      alert('Generate something first.');
+      return;
+    }
+    var title = document.getElementById('saveTitleInput').value.trim() || 'Untitled module';
+    var sourceText = (document.getElementById('studioTextInput').value.trim() || lastExtractedText).slice(0, 500);
+    fetch(BACKEND_URL + '/api/library/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        title: title,
+        source_text: sourceText,
+        data: lastGeneratedData,
+        level: selectedLevel,
+        filename: lastGeneratedData.filename || null
+      })
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(){
+      document.getElementById('saveTitleInput').value = '';
+      refreshLibrary();
+    })
+    .catch(function(err){ alert('Could not save: ' + err.message); });
+  });
+
+  // ---- Upload & download ----
+  var fileInput = document.getElementById('fileInput');
+  var uploadZone = document.getElementById('uploadZone');
+  uploadZone.addEventListener('click', function(){ fileInput.click(); });
+  uploadZone.addEventListener('dragover', function(e){ e.preventDefault(); uploadZone.style.borderColor = 'var(--blue)'; });
+  uploadZone.addEventListener('dragleave', function(){ uploadZone.style.borderColor = ''; });
+  uploadZone.addEventListener('drop', function(e){
+    e.preventDefault();
+    uploadZone.style.borderColor = '';
+    if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', function(){
+    if (fileInput.files.length) handleUpload(fileInput.files[0]);
+  });
+  document.getElementById('addMaterialBtn').addEventListener('click', function(){ fileInput.click(); });
+  document.getElementById('newFromTextbookBtn').addEventListener('click', function(){
+    document.getElementById('studio-section').scrollIntoView({behavior:'smooth'});
+  });
+  var emptyStateAddBtn = document.getElementById('emptyStateAddBtn');
+  if (emptyStateAddBtn){
+    emptyStateAddBtn.addEventListener('click', function(){ fileInput.click(); });
+  }
+
+  function addFileRow(name, statusText, statusColor){
+    var row = document.createElement('div');
+    row.className = 'file-row';
+    row.innerHTML = '<span>' + escapeHtml(name) + '</span><span style="color:' + statusColor + ';font-weight:600;">' + escapeHtml(statusText) + '</span>';
+    document.getElementById('fileRowsDynamic').prepend(row);
+    return row;
+  }
+
+  function handleUpload(file){
+    var row = addFileRow(file.name, 'Extracting...', 'var(--muted)');
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('level', selectedLevel);
+    fetch(BACKEND_URL + '/api/upload', { method: 'POST', body: formData })
+    .then(function(res){ return res.json().then(function(body){ return {ok: res.ok, body: body}; }); })
+    .then(function(result){
+      if (!result.ok){
+        row.querySelector('span:last-child').textContent = 'Error';
+        row.querySelector('span:last-child').style.color = 'var(--red)';
+        setStatus('Upload error: ' + (result.body.error || 'unknown error'));
+        return;
+      }
+      row.querySelector('span:last-child').textContent = 'Ready';
+      row.querySelector('span:last-child').style.color = 'var(--green)';
+      lastExtractedText = result.body.extracted_text || '';
+      lastGeneratedData = result.body;
+      renderResults(result.body);
+      document.getElementById('studio-section').scrollIntoView({behavior:'smooth'});
+    })
+    .catch(function(err){
+      row.querySelector('span:last-child').textContent = 'Error';
+      row.querySelector('span:last-child').style.color = 'var(--red)';
+    });
+  }
+
+  // ---- My books / My library (real, backend-driven) ----
+  function refreshLibrary(){
+    fetch(BACKEND_URL + '/api/library/')
+    .then(function(res){ return res.json(); })
+    .then(function(items){
+      var container = document.getElementById('myBooksContainer');
+      if (!items.length){
+        container.innerHTML = '<div class="empty-state">' +
+          '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h11a3 3 0 013 3v13H7a3 3 0 01-3-3V4z"/><path d="M8 8h6M8 12h6" stroke-dasharray="1 3"/></svg>' +
+          '<strong>No books yet</strong>' +
+          '<p>Anything you convert, save, or build in AI Studio will show up here so you can get back to it fast.</p>' +
+          '<button class="btn btn-gradient" id="emptyStateAddBtn">Add material</button>' +
+          '</div>';
+        document.getElementById('emptyStateAddBtn').addEventListener('click', function(){ fileInput.click(); });
+        return;
+      }
+      container.innerHTML = '<div class="grid">' + items.map(function(m){
+        var statusDot = m.has_outdated ? 'dot-red' : 'dot-green';
+        var statusText = m.has_outdated ? 'Flagged: outdated content' : 'Saved';
+        return '<div class="card">' +
+          '<span class="tag tag-text">' + escapeHtml(m.level || 'reading') + '</span>' +
+          '<h3>' + escapeHtml(m.title) + '</h3>' +
+          '<p>' + (m.filename ? 'From ' + escapeHtml(m.filename) : 'From pasted text') + '</p>' +
+          '<div class="card-meta"><span>' + escapeHtml(m.language || 'English') + '</span>' +
+          '<span class="status"><span class="dot ' + statusDot + '"></span>' + statusText + '</span></div>' +
+          '<div class="card-actions">' +
+          '<button class="icon-btn" onclick="downloadModule(' + m.id + ')">Download</button>' +
+          '</div></div>';
+      }).join('') + '</div>';
+    })
+    .catch(function(err){ console.error('Could not load library:', err); });
+  }
+
+  function downloadModule(id){
+    window.open(BACKEND_URL + '/api/library/' + id + '/download', '_blank');
+  }
+
+  document.getElementById('refreshLibraryBtn').addEventListener('click', function(e){
+    e.preventDefault();
+    refreshLibrary();
+  });
+
+  refreshLibrary();
+
+  // ---- Create tab: shortcuts into the real tools above ----
+  document.querySelectorAll('.create-card[data-action]').forEach(function(card){
+    card.addEventListener('click', function(){
+      var action = card.getAttribute('data-action');
+      if (action === 'blank-lesson'){
+        document.getElementById('studio-section').scrollIntoView({behavior:'smooth'});
+        document.getElementById('studioTextInput').focus();
+      } else if (action === 'from-textbook' || action === 'from-dataset'){
+        document.getElementById('upload-section').scrollIntoView({behavior:'smooth'});
+      } else if (action === 'quiz-flashcards'){
+        document.getElementById('studio-section').scrollIntoView({behavior:'smooth'});
+      }
+    });
+  });
+
+  // ---- Community: post a new item to the top of the feed (client-side only) ----
+  var postBtn = document.getElementById('communityPostBtn');
+  var postInput = document.getElementById('communityPostInput');
+  var feed = document.getElementById('communityFeed');
+  if(postBtn){
+    postBtn.addEventListener('click', function(){
+      var text = postInput.value.trim();
+      if(!text) return;
+      var item = document.createElement('div');
+      item.className = 'feed-item';
+      item.innerHTML = '<div class="feed-avatar" style="background:linear-gradient(135deg,var(--blue),var(--pink));"></div>'
+        + '<div><p><strong>You</strong> ' + text.replace(/</g,'&lt;') + '</p><time>Just now</time></div>';
+      feed.insertBefore(item, feed.firstChild);
+      postInput.value = '';
+    });
+  }
+
+  // ---- Translate: real backend call ----
+  var translateBtn = document.getElementById('translateBtn');
+  if(translateBtn){
+    translateBtn.addEventListener('click', function(){
+      var source = document.getElementById('translateSource').value.trim();
+      var target = document.getElementById('translateTarget').value;
+      var output = document.getElementById('translateOutput');
+      var status = document.getElementById('translateStatus');
+      if (!source){
+        status.textContent = 'Paste some text first.';
+        return;
+      }
+      status.textContent = 'Translating...';
+      output.value = '';
+      fetch(BACKEND_URL + '/api/translate/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: source, target_language: target})
+      })
+      .then(function(res){ return res.json().then(function(body){ return {ok: res.ok, body: body}; }); })
+      .then(function(result){
+        if (!result.ok){
+          status.textContent = 'Error: ' + (result.body.error || 'unknown error');
+          return;
+        }
+        output.value = result.body.translation;
+        status.textContent = '';
+      })
+      .catch(function(err){
+        status.textContent = 'Could not reach backend: ' + err.message;
+      });
+    });
+  }
+
+  // ---- Search: real backend call (DuckDuckGo via /api/search), results are saveable ----
+  var topSearchInput = document.getElementById('topSearchInput');
+  var searchResultsHead = document.getElementById('searchResultsHead');
+  var searchResultsGrid = document.getElementById('searchResultsGrid');
+  var searchResultsTitle = document.getElementById('searchResultsTitle');
+  var searchResultsStatus = document.getElementById('searchResultsStatus');
+
+  function showRecommended(){
+    recommendedGrid.style.display = '';
+    searchResultsHead.style.display = 'none';
+    searchResultsGrid.style.display = 'none';
+  }
+
+  function runSearch(query){
+    recommendedGrid.style.display = 'none';
+    searchResultsHead.style.display = 'flex';
+    searchResultsGrid.style.display = 'grid';
+    searchResultsTitle.textContent = 'Search results for "' + query + '"';
+    searchResultsStatus.textContent = 'Searching...';
+    searchResultsGrid.innerHTML = '';
+
+    fetch(BACKEND_URL + '/api/search/?q=' + encodeURIComponent(query))
+      .then(function(res){ return res.json().then(function(body){ return {ok: res.ok, body: body}; }); })
+      .then(function(result){
+        if (!result.ok){
+          searchResultsStatus.textContent = 'Error: ' + (result.body.error || 'search failed');
+          return;
+        }
+        searchResultsStatus.textContent = '';
+        var results = result.body.results || [];
+        if (!results.length){
+          searchResultsGrid.innerHTML = '<p style="color:var(--muted);">No results found.</p>';
+          return;
+        }
+        searchResultsGrid.innerHTML = results.map(function(r){
+          return '<div class="card">' +
+            '<span class="tag tag-text">Web result</span>' +
+            '<h3>' + escapeHtml(r.title) + '</h3>' +
+            '<p>' + escapeHtml(r.snippet || '') + '</p>' +
+            '<div class="card-meta"><a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener" style="color:var(--blue);font-size:12px;">Visit site</a></div>' +
+            '<div class="card-actions">' +
+            '<button class="icon-btn" data-action="save-search" data-title="' + escapeHtml(r.title) + '" data-url="' + escapeHtml(r.url) + '" data-snippet="' + escapeHtml(r.snippet || '') + '">Save</button>' +
+            '</div></div>';
+        }).join('');
+      })
+      .catch(function(err){
+        searchResultsStatus.textContent = 'Could not reach backend: ' + err.message;
+      });
+  }
+
+  if (topSearchInput){
+    topSearchInput.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter') return;
+      var q = topSearchInput.value.trim();
+      if (!q){ showRecommended(); return; }
+      runSearch(q);
+    });
+    topSearchInput.addEventListener('input', function(){
+      if (!topSearchInput.value.trim()) showRecommended();
+    });
+  }
+
+  searchResultsGrid.addEventListener('click', function(e){
+    var btn = e.target.closest('.icon-btn[data-action="save-search"]');
+    if (!btn) return;
+    if (btn.classList.contains('saved')) return;
+    saveItem({
+      title: btn.getAttribute('data-title'),
+      url: btn.getAttribute('data-url'),
+      snippet: btn.getAttribute('data-snippet'),
+      source: 'search'
+    }, btn);
+  });
+
+  // ---- Mock: Ask an educator — canned reply, no backend endpoint exists ----
+  var selectedEducator = 'Dr. Meera S.';
+  var educatorPills = document.getElementById('educatorPills');
+  var CANNED_REPLIES = [
+    "Good question — the short version is it depends on the specific case, but here's the general idea: ",
+    "That's a common point of confusion. Think of it this way: ",
+    "Nice one to ask — here's a quick way to picture it: "
+  ];
+  if (educatorPills){
+    educatorPills.querySelectorAll('.educator').forEach(function(pill){
+      pill.addEventListener('click', function(){
+        educatorPills.querySelectorAll('.educator').forEach(function(p){
+          p.style.borderColor = 'var(--line)';
+          p.style.color = '';
+        });
+        pill.style.borderColor = 'var(--blue)';
+        pill.style.color = 'var(--blue)';
+        selectedEducator = pill.getAttribute('data-name');
+      });
+    });
+  }
+  var askInput = document.getElementById('askEducatorInput');
+  var askSendBtn = document.getElementById('askSendBtn');
+  var askReplies = document.getElementById('askReplies');
+  if (askSendBtn){
+    askSendBtn.addEventListener('click', function(){
+      var q = askInput.value.trim();
+      if (!q) return;
+      var mine = document.createElement('div');
+      mine.className = 'ask-reply you';
+      mine.innerHTML = '<span class="edu-avatar" style="background:linear-gradient(135deg,var(--blue),var(--pink));"></span>' +
+        '<div><strong>You asked ' + escapeHtml(selectedEducator) + '</strong>' + escapeHtml(q) + '</div>';
+      askReplies.appendChild(mine);
+      askInput.value = '';
+
+      var thinking = document.createElement('div');
+      thinking.className = 'ask-reply';
+      thinking.innerHTML = '<span class="edu-avatar" style="background:linear-gradient(135deg,var(--green),var(--blue));"></span>' +
+        '<div><strong>' + escapeHtml(selectedEducator) + '</strong><span style="color:var(--muted);">typing…</span></div>';
+      askReplies.appendChild(thinking);
+
+      setTimeout(function(){
+        var canned = CANNED_REPLIES[Math.floor(Math.random() * CANNED_REPLIES.length)];
+        thinking.innerHTML = '<span class="edu-avatar" style="background:linear-gradient(135deg,var(--green),var(--blue));"></span>' +
+          '<div><strong>' + escapeHtml(selectedEducator) + '</strong>' + escapeHtml(canned) +
+          'this is a mocked reply for demo purposes — real answers will come from an actual educator once that feature is wired up.</div>';
+      }, 1100);
+    });
+    askInput.addEventListener('keydown', function(e){
+      if (e.key === 'Enter') askSendBtn.click();
+    });
+  }
+
+  // ---- Mock: Read / Download on Recommended cards — no /api/upload-backed
+  // file exists per card yet, so both actions use one placeholder PDF. ----
+  var MOCK_PDF_BASE64 = "JVBERi0xLjMKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKGFub255bW91cykgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDkyNjA4MDgxMSswMCcwMCcpIC9DcmVhdG9yIChhbm9ueW1vdXMpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MDkyNjA4MDgxMSswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0ICh1bnNwZWNpZmllZCkgL1RpdGxlICh1bnRpdGxlZCkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db3VudCAxIC9LaWRzIFsgNSAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMzYwCj4+CnN0cmVhbQpHYXJvPTlodGo3JjtLWlAoJTUhb1pQRT5BblM1KURVYU8oLSRjNl1yX2E3b05TK3U8P1o6N25vIiFNMVpTbkFsQ1knR2kvUkxaaS09UE84aSQuVjtCV1lPIm5HQToxPCchZkk7QWY7SW1MZyI4L190YWNZXUExQiRuTFM3Mi9UaFkkZUFuJ2Y+c2M0az8lIUM0UyM0LXM4NXVfV18sS0NQW0BvTCk5KnBVTEtcVmJbJywtK2Q9SlJNYWZaJUZqT2dnWURlU2pjPF4pWkJ1VGoySj9FLixuZEk1b0cyX1MwTyhoVnM1XT9DTipSJWhsaUJWMUhzPGxNREZcczc9NE5KJzc3aSVQQkpVR3FTSGdWYSpoRyY1QSQmXlBXW0dAdWsjbWFXNikvcVYvK3VLSUdZWzxxOig5ZihKNlJwcWE7ZDgmT2hJcVZlNSZUK14tc2pKTkUmSmRdUzI5NlI+UmxrP0RJUUhdfj5lbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCAxMAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwNjEgMDAwMDAgbiAKMDAwMDAwMDExMiAwMDAwMCBuIAowMDAwMDAwMjE5IDAwMDAwIG4gCjAwMDAwMDAzMzEgMDAwMDAgbiAKMDAwMDAwMDQ0NiAwMDAwMCBuIAowMDAwMDAwNjM5IDAwMDAwIG4gCjAwMDAwMDA3MDcgMDAwMDAgbiAKMDAwMDAwMDk2OCAwMDAwMCBuIAowMDAwMDAxMDI3IDAwMDAwIG4gCnRyYWlsZXIKPDwKL0lEIApbPDU1YTVmMGFiOTY5NDY2NjdjMjhiOTlkYzRkYmQ0ODdkPjw1NWE1ZjBhYjk2OTQ2NjY3YzI4Yjk5ZGM0ZGJkNDg3ZD5dCiUgUmVwb3J0TGFiIGdlbmVyYXRlZCBQREYgZG9jdW1lbnQgLS0gZGlnZXN0IChvcGVuc291cmNlKQoKL0luZm8gNyAwIFIKL1Jvb3QgNiAwIFIKL1NpemUgMTAKPj4Kc3RhcnR4cmVmCjE0NzcKJSVFT0YK";
+
+  function base64ToBlob(b64, mime){
+    var byteChars = atob(b64);
+    var byteNumbers = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++){
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], {type: mime});
+  }
+
+  var mockPdfUrl = null;
+  function getMockPdfUrl(){
+    if (!mockPdfUrl){
+      mockPdfUrl = URL.createObjectURL(base64ToBlob(MOCK_PDF_BASE64, 'application/pdf'));
+    }
+    return mockPdfUrl;
+  }
+
+  function slugify(str){
+    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'lumora-resource';
+  }
+
+  // ---- Saved section: real backend store. Search results and Recommended
+  // cards both save here via the same /api/saved endpoint. ----
+  var savedContainer = document.getElementById('savedContainer');
+
+  function savedEmptyStateHtml(){
+    return '<div class="empty-state">' +
+      '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 4h12v17l-6-4-6 4z"/></svg>' +
+      '<strong>Nothing saved yet</strong>' +
+      '<p>Tap "Save" on any lesson, quiz, dataset, or search result and it will be waiting for you here.</p>' +
+      '</div>';
+  }
+
+  function refreshSaved(){
+    fetch(BACKEND_URL + '/api/saved/')
+    .then(function(res){ return res.json(); })
+    .then(function(items){
+      if (!items.length){
+        savedContainer.innerHTML = savedEmptyStateHtml();
+      } else {
+        savedContainer.innerHTML = '<div class="grid">' + items.map(function(item){
+          return '<div class="card">' +
+            '<span class="tag tag-text">' + (item.source === 'search' ? 'Web result' : 'Resource') + '</span>' +
+            '<h3>' + escapeHtml(item.title) + '</h3>' +
+            (item.snippet ? '<p>' + escapeHtml(item.snippet) + '</p>' : '') +
+            (item.url ? '<div class="card-meta"><a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener" style="color:var(--blue);font-size:12px;">Visit site</a></div>' : '') +
+            '<div class="card-actions">' +
+            '<button class="icon-btn" onclick="removeSavedItem(' + item.id + ')">Remove</button>' +
+            '</div></div>';
+        }).join('') + '</div>';
+      }
+      syncRecommendedSaveButtons(items);
+    })
+    .catch(function(err){ console.error('Could not load saved items:', err); });
+  }
+
+  function syncRecommendedSaveButtons(items){
+    var byTitle = {};
+    items.forEach(function(it){ if (it.source === 'recommended') byTitle[it.title] = it.id; });
+    document.querySelectorAll('#recommendedGrid .card').forEach(function(card){
+      var title = card.querySelector('h3').textContent.trim();
+      var btn = card.querySelector('.icon-btn[data-action="save"]');
+      if (!btn) return;
+      if (byTitle.hasOwnProperty(title)){
+        btn.classList.add('saved');
+        btn.textContent = 'Saved';
+        btn.setAttribute('data-saved-id', byTitle[title]);
+      } else {
+        btn.classList.remove('saved');
+        btn.textContent = 'Save';
+        btn.removeAttribute('data-saved-id');
+      }
+    });
+  }
+
+  function saveItem(payload, btn){
+    fetch(BACKEND_URL + '/api/saved/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(entry){
+      if (btn){
+        btn.classList.add('saved');
+        btn.textContent = 'Saved';
+        btn.setAttribute('data-saved-id', entry.id);
+      }
+      refreshSaved();
+    })
+    .catch(function(err){ alert('Could not save: ' + err.message); });
+  }
+
+  function removeSavedItem(id){
+    fetch(BACKEND_URL + '/api/saved/' + id, { method: 'DELETE' })
+    .then(function(){ refreshSaved(); })
+    .catch(function(err){ alert('Could not remove: ' + err.message); });
+  }
+
+  var refreshSavedBtn = document.getElementById('refreshSavedBtn');
+  if (refreshSavedBtn){
+    refreshSavedBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      refreshSaved();
+    });
+  }
+
+  refreshSaved();
+
+  var recommendedGrid = document.getElementById('recommendedGrid');
+  if (recommendedGrid){
+    recommendedGrid.addEventListener('click', function(e){
+      var btn = e.target.closest('.icon-btn[data-action]');
+      if (!btn) return;
+      var action = btn.getAttribute('data-action');
+      var card = btn.closest('.card');
+      var title = card ? card.querySelector('h3').textContent.trim() : 'resource';
+
+      if (action === 'read'){
+        window.open(getMockPdfUrl(), '_blank');
+      } else if (action === 'download'){
+        var a = document.createElement('a');
+        a.href = getMockPdfUrl();
+        a.download = slugify(title) + '.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else if (action === 'save'){
+        var existingId = btn.getAttribute('data-saved-id');
+        if (existingId){
+          removeSavedItem(parseInt(existingId, 10));
+          btn.classList.remove('saved');
+          btn.textContent = 'Save';
+          btn.removeAttribute('data-saved-id');
+        } else {
+          var desc = card.querySelector('p') ? card.querySelector('p').textContent.trim() : '';
+          saveItem({title: title, url: null, snippet: desc, source: 'recommended'}, btn);
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

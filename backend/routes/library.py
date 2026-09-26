@@ -9,7 +9,7 @@ modules = []
 next_id = 1
 
 
-@library_bp.route("/", methods=["POST"])
+@library_bp.route("/", methods=["POST"], strict_slashes=False)
 def save_module():
     global next_id
 
@@ -34,7 +34,7 @@ def save_module():
     return jsonify(entry), 201
 
 
-@library_bp.route("/", methods=["GET"])
+@library_bp.route("/", methods=["GET"], strict_slashes=False)
 def list_modules():
     summaries = [
         {"id": m["id"], "title": m["title"], "created_at": m["created_at"]}

@@ -60,7 +60,7 @@ SOURCE TEXT:
 \"\"\""""
 
 
-@generate_bp.route("/", methods=["POST"])
+@generate_bp.route("/", methods=["POST"], strict_slashes=False)
 def generate():
     try:
         body = request.get_json(silent=True) or {}
